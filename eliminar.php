@@ -1,4 +1,15 @@
 <?php
+session_start();
+if (!isset($_SESSION['usuario'])) {
+    header("Location: login.php");
+    exit;
+}
+
+
+if ($_SESSION['rol'] !== 'admin') {
+    header("Location: index.php?error=sin_permiso");
+    exit;
+}
 
 require "conexion.php";
 
@@ -8,14 +19,9 @@ if (!isset($_GET["id"])) {
 
 $id = $_GET["id"];
 
-$consulta = $conexion->prepare("DELETE FROM productos WHERE id = :id");
+$consulta = $pdo->prepare("DELETE FROM productos WHERE id = :id");
+$consulta->execute([":id" => $id]);
 
-$consulta->execute([
-    ":id" => $id
-]);
-
-if ($consulta->rowCount() > 0) {
-    header("Location: index.php?res=eliminado");
-    exit;
-}
+header("Location: index.php?res=eliminado");
+exit;
 ?>

@@ -1,24 +1,30 @@
 <?php
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
+session_start();
+if (!isset($_SESSION['usuario'])) {
+    header("Location: login.php");
+    exit;
+}
 
 require "conexion.php";
 
-$id = $_POST["id"];
-$nombre = $_POST["nombre"];
-$stock = $_POST["stock"];
-$precio = $_POST["precio"];
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $id = $_POST['id'];
+    $nombre = trim($_POST['nombre']);
+    $stock = (int)$_POST['stock'];
+    $precio = (float)$_POST['precio'];
 
+    $stmt = $pdo->prepare("UPDATE productos SET nombre = :nombre, stock = :stock, precio = :precio WHERE id = :id");
+    $stmt->execute([
+        ':nombre' => $nombre,
+        ':stock'  => $stock,
+        ':precio' => $precio,
+        ':id'     => $id
+    ]);
 
-$consulta = $conexion->prepare("UPDATE productos SET nombre = :nombre, stock = :stock, precio = :precio WHERE id = :id");
-$consulta->execute([
-    ':id' => $id,
-    ':nombre' => $nombre,
-    ':stock' => $stock,
-    ':precio' => $precio,
-]);
-
-header("Location: index.php?res=editado");
-
+    header("Location: index.php?res=editado");
+    exit;
+} else {
+    header("Location: index.php");
+    exit;
+}
 ?>

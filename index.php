@@ -1,58 +1,71 @@
 <?php
+session_start();
+if (!isset($_SESSION['usuario'])) {
+    header("Location: login.php");
+    exit;
+}
+
 require "conexion.php";
-$resultado = $conexion->query('SELECT * FROM productos');
-
-$res = $_GET["res"] ?? "";
-
+$stmt = $pdo->query("SELECT * FROM productos");
+$productos = $stmt->fetchAll();
 ?>
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="styles.css">
-    <title>Crud PHP</title>
-</head>
+<?php include "header.php" ?>
 <body>
-    <h1>Clase 15 - CRUD con PHP</h1>
-    <?php if($res == "agregado"): ?>
-        <p class="res agregado">El producto se agregó correctamente</p>
-    <?php elseif($res == "editado"): ?>
-        <p class="res editado">El producto se editó correctamente</p>
-    <?php elseif($res == "eliminado"): ?>
-        <p class="res eliminado">El producto se eliminó correctamente</p>
-    <?php elseif($res == "error"): ?>
-        <p class="res error"> Ocurrió un error</p>
+    <header style="display: flex; justify-content: space-between; align-items: center; padding: 10px 20px;">
+        <p>Hola, <strong><?= $_SESSION['usuario']; ?></strong> (<em><?= $_SESSION['rol']; ?></em>)</p>
+        <a href="logout.php" style="color: red; font-weight: bold;">Cerrar Sesión</a>
+    </header>
+
+    <h1>Lista de Productos</h1>
+
+    <?php if (isset($_GET['res']) && $_GET['res'] == 'agregado'): ?>
+        <p class="res agregado">Producto agregado correctamente.</p>
     <?php endif; ?>
-    <?php if($res == "ok"): ?>
-        <p class="res">El producto se actualizó correctamente</p>
+
+    <?php if (isset($_GET['res']) && $_GET['res'] == 'editado'): ?>
+        <p class="res agregado">Producto actualizado correctamente.</p>
     <?php endif; ?>
+
+    <?php if (isset($_GET['res']) && $_GET['res'] == 'eliminado'): ?>
+        <p class="res eliminado">Producto eliminado correctamente.</p>
+    <?php endif; ?>
+
+    <?php if (isset($_GET['error']) && $_GET['error'] == 'sin_permiso'): ?>
+        <p class="res eliminado">Error: Solo los administradores pueden eliminar productos.</p>
+    <?php endif; ?>
+
     <main>
-    <h2>Lista de productos</h2>
-    <section class="productos">
-    <?php foreach ($resultado as $producto): ?>
-        <article class="producto">
-            <h3><?= $producto['nombre']; ?></h3>
-            <p>Stock disponible: <?= $producto['stock']; ?></p>
-            <p>$<?= $producto['precio']; ?></p>
-            <a href="editar.php?id=<?= $producto['id']; ?>">Editar</a>
-            <a href="eliminar.php?id=<?= $producto['id']; ?>">Eliminar</a>
-        </article>
-    <?php endforeach; ?>
-    </section>
-    <section>
-        <h2>Agregar producto</h2>
-        <form class="form" action="guardar.php" method="POST">
-            <label for="nombre">Nombre</label>
-            <input type="text" name="nombre" id="nombre" required>
-            <label for="stock">Stock</label>
-            <input type="number" name="stock" id="stock" required>
-            <label for="precio">Precio</label>
-            <input type="number" name="precio" id="precio" step="0.01" required>
-            <button class="btn-submit" type="submit">Agregar</button>
-        </form>
-    </section>
-</main>
+        <p><a class="btn-submit" href="agregar.php">+ Agregar Producto</a></p>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Stock</th>
+                    <th>Precio</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($productos as $producto): ?>
+                    <tr>
+                        <td><?= $producto['id']; ?></td>
+                        <td><?= $producto['nombre']; ?></td>
+                        <td><?= $producto['stock']; ?></td>
+                        <td>$<?= $producto['precio']; ?></td>
+                        <td>
+                            <a class="btn-submit" href="editar.php?id=<?= $producto['id']; ?>">Editar</a>
+                            
+                            <?php if ($_SESSION['rol'] === 'admin'): ?>
+                                <a class="btn-submit" style="background-color: red;" href="eliminar.php?id=<?= $producto['id']; ?>" onclick="return confirm('¿Seguro que querés eliminar?');">Eliminar</a>
+                            <?php endif; ?>
+                        </td>
+                    </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+    </main>
 </body>
 </html>

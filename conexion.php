@@ -7,13 +7,13 @@ $basededatos = "tiendados";
 
 try {
 
-    $conexion = new PDO(
+    $pdo = new PDO(
         "mysql:host=$servidor;dbname=$basededatos;charset=utf8",
         $usuario,
         $clave
     );
 
-    $conexion->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
 } catch (PDOException $e) {
 
